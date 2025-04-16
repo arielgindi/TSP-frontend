@@ -25,9 +25,9 @@ export interface OptimizationResult {
     optimizedDistanceGI: number;
     combinationsCheckedNN: number;
     combinationsCheckedGI: number;
-    errorMessage: string | null; // Expect this from backend on error
+    errorMessage: string | null;
     totalExecutionTimeMs: number;
-    pathExecutionTimeMs?: number; // This was added to the path result in backend refactor
+    pathExecutionTimeMs?: number;
 }
 
 export interface OptimizationRequestData {
@@ -37,12 +37,11 @@ export interface OptimizationRequestData {
     maxCoordinate?: number;
 }
 
-// --- Added ProgressUpdate Type ---
 export interface ProgressUpdate {
     step?: string;
     message: string;
-    style: string; // e.g., "header", "info", "success", "warning", "detail", "result", "debug", "error", "progress", "step", "step-header", "detail-mono", "success-large", "error-large"
+    style: string;
     data?: any;
     clearPreviousProgress?: boolean;
-    timestamp?: number; // Optional: Add timestamp on frontend for sorting/display if needed
+    timestamp?: number;
 }
