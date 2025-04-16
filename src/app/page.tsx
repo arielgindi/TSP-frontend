@@ -642,14 +642,7 @@ export default function Home() {
                 )})`}
               />
             </div>
-            {/* Info Note */}
-            <div className="text-center p-4 bg-blue-50 dark:bg-slate-800/70 rounded-lg border border-blue-200 dark:border-slate-700 shadow-sm">
-              <Info className="inline-block w-5 h-5 mr-2 text-blue-600 dark:text-blue-400 align-middle" />
-              <span className="text-sm text-gray-700 dark:text-gray-300 align-middle">
-                Distances use Euclidean geometry. Time assumes a speed of 1
-                meter/sec.
-              </span>
-            </div>
+
             {/* Route Chart */}
             <div className="mb-10">
               <h3 className="text-xl md:text-2xl font-semibold mb-5 text-center text-gray-800 dark:text-gray-200">
