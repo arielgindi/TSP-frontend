@@ -28,6 +28,8 @@ export interface OptimizationResult {
     errorMessage: string | null;
     totalExecutionTimeMs: number;
     pathExecutionTimeMs?: number;
+    initialDistanceCWS?: number;
+    optimizedDistanceCWS?: number;
 }
 
 export interface OptimizationRequestData {
@@ -41,7 +43,7 @@ export interface ProgressUpdate {
     step?: string;
     message: string;
     style: string;
-    data?: any;
+    data?: Record<string, unknown>;
     clearPreviousProgress?: boolean;
     timestamp?: number;
 }

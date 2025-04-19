@@ -1,7 +1,6 @@
-// src/app/page.tsx
-// ========= START OF FILE =========
 "use client";
 
+import RouteChart from "@/components/RouteChart";
 import {
   DriverRoute,
   OptimizationRequestData,
@@ -15,7 +14,6 @@ import {
   CheckCircle,
   ChevronsRight,
   Clock,
-  Info,
   Loader2,
   Map,
   MapPinned,
@@ -27,7 +25,6 @@ import {
   XCircle,
 } from "lucide-react";
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
-import RouteChart from "@/components/RouteChart";
 
 export default function Home() {
   const [numDeliveries, setNumDeliveries] = useState<number>(30);
@@ -49,7 +46,7 @@ export default function Home() {
     const url = process.env.NEXT_PUBLIC_SIGNALR_URL;
     if (!url) {
       setError("SignalR URL missing. Real-time logs disabled.");
-      setConnectionStatus("Not connected"); // Ensure status reflects the error
+      setConnectionStatus("Not connected");
       return;
     }
     const connection = new signalR.HubConnectionBuilder()
@@ -62,7 +59,6 @@ export default function Home() {
     connection.on("ReceiveMessage", (update: ProgressUpdate) => {
       setLogMessages((prev) => {
         const item = { ...update, timestamp: Date.now() };
-        // Logic to replace the last progress message if needed
         if (item.clearPreviousProgress && item.style === "progress") {
           const lastProgressIndex = prev
             .map((log) => log.style)
@@ -83,7 +79,7 @@ export default function Home() {
         setConnectionStatus("Connected");
       })
       .catch((err) => {
-        console.error("SignalR Connection Error: ", err); // Log detailed error
+        console.error("SignalR Connection Error: ", err);
         setError(
           `Failed to connect to SignalR hub at ${url}. Real-time logs will be unavailable.`
         );
@@ -102,14 +98,12 @@ export default function Home() {
 
     connection.onclose((err) => {
       console.warn("SignalR connection closed: ", err);
-      // Don't set to "Not connected" if it's already failed or intentionally stopped
       if (connectionStatus !== "Connection Failed") {
         setConnectionStatus("Disconnected");
       }
     });
 
     return () => {
-      // Ensure connection exists and stop it
       hubConnection
         ?.stop()
         .catch((err) =>
@@ -117,7 +111,7 @@ export default function Home() {
         );
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Removed hubConnection from dependencies to prevent re-running on state change
+  }, []);
 
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -142,9 +136,8 @@ export default function Home() {
     setIsLoading(true);
     setError(null);
     setResults(null);
-    setLogMessages([]); // Clear logs at the start of a new request
+    setLogMessages([]);
 
-    // Check connection status before proceeding
     if (
       !hubConnection ||
       hubConnection.state !== signalR.HubConnectionState.Connected
@@ -155,11 +148,10 @@ export default function Home() {
           message: `SignalR not connected (State: ${
             hubConnection?.state ?? "Not Initialized"
           }). Real-time logs unavailable.`,
-          style: "warning", // Use warning style
+          style: "warning",
           timestamp: Date.now(),
         },
       ]);
-      // Optionally, you could choose to not proceed without SignalR, but here we allow it
     }
 
     if (numDeliveries <= 0 || numDrivers <= 0) {
@@ -197,14 +189,12 @@ export default function Home() {
           Accept: "application/json",
         },
         body: JSON.stringify(requestData),
-        cache: "no-store", // Ensure fresh data
+        cache: "no-store",
       });
 
-      // Attempt to parse JSON regardless of response.ok, as error details might be in the body
       const data = await response.json();
 
       if (!response.ok) {
-        // Try to get a more specific error message from the response body
         const errMsg =
           data?.errorMessage ||
           data?.title ||
@@ -212,16 +202,14 @@ export default function Home() {
         throw new Error(errMsg);
       }
 
-      // Check if the expected data structure is present
       if (!data || typeof data.bestMethod === "undefined") {
         throw new Error("Received unexpected data structure from the server.");
       }
 
-      setResults(data as OptimizationResult); // We assume data is OptimizationResult if response was ok
+      setResults(data as OptimizationResult);
     } catch (err: unknown) {
       let msg = "An unexpected error occurred during the API request.";
       if (err instanceof Error) {
-        // Handle network errors specifically
         if (
           err.message.includes("Failed to fetch") ||
           err.message.includes("NetworkError")
@@ -231,15 +219,14 @@ export default function Home() {
           err.message.startsWith("Server Error") ||
           err.message.startsWith("API Error:")
         ) {
-          msg = err.message; // Use the error message thrown from the !response.ok block
+          msg = err.message;
         } else if (err.message.includes("JSON at position")) {
           msg = `API Error: Failed to parse response from server. The server might be down or returning invalid data. (${err.message})`;
         } else {
-          // General error message from the Error object
           msg = `API Error: ${err.message}`;
         }
       }
-      console.error("API Fetch Error:", err); // Log the full error for debugging
+      console.error("API Fetch Error:", err);
       setError(msg);
       setLogMessages((prev) => [
         ...prev,
@@ -249,16 +236,13 @@ export default function Home() {
           timestamp: Date.now(),
         },
       ]);
-      setResults(null); // Clear any potentially partial results
+      setResults(null);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // --- STYLE AND PREFIX FUNCTIONS ---
-
   const styleForLog = (s: string | undefined): string => {
-    // Added undefined check
     const base = "block py-0.5 px-1 text-sm leading-relaxed";
     switch (s) {
       case "header":
@@ -268,7 +252,7 @@ export default function Home() {
       case "step":
         return `${base} text-yellow-600 ml-1`;
       case "info":
-        return `${base} text-gray-700 dark:text-gray-300`; // Adjusted dark mode colors
+        return `${base} text-gray-700 dark:text-gray-300`;
       case "detail":
         return `${base} text-gray-500 dark:text-gray-400 ml-5`;
       case "detail-mono":
@@ -290,13 +274,11 @@ export default function Home() {
       case "debug":
         return `${base} text-xs text-gray-400 dark:text-gray-500 italic`;
       default:
-        return `${base} text-gray-800 dark:text-gray-200`; // Default colors
+        return `${base} text-gray-800 dark:text-gray-200`;
     }
   };
 
-  // FIX APPLIED HERE: Explicitly typing the return value
   const prefixForLog = (s: string | undefined): React.ReactNode | null => {
-    // Added undefined check and explicit React.ReactNode return type
     const iconSize = "w-4 h-4 mr-1.5 flex-shrink-0";
     switch (s) {
       case "step":
@@ -351,13 +333,10 @@ export default function Home() {
             className={`${iconSize} text-cyan-500 dark:text-cyan-400`}
           />
         );
-      // No icon for 'info', 'progress', 'debug', 'header', 'step-header', or default
       default:
         return null;
     }
   };
-
-  // --- UTILITY FUNCTIONS ---
 
   const formatTime = (seconds: number): string => {
     if (isNaN(seconds) || seconds < 0) return "N/A";
@@ -367,25 +346,25 @@ export default function Home() {
   };
 
   const formatDistance = (meters: number): string => {
-    if (isNaN(meters)) return "N/A"; // Handle potential NaN
-    // Handle negative distance if it somehow occurs, although physically unlikely
+    if (isNaN(meters)) return "N/A";
     const absMeters = Math.abs(meters);
-    if (absMeters < 1000) return `${meters.toFixed(1)} m`; // Keep original sign if needed
-    return `${(meters / 1000).toFixed(2)} km`; // Keep original sign if needed
+    if (absMeters < 1000) return `${meters.toFixed(1)} m`;
+    return `${(meters / 1000).toFixed(2)} km`;
   };
 
-  // Determine total distance based on the best method reported
   const getTotalDistance = (): number => {
     if (!results) return NaN;
-    if (results.bestMethod?.includes("NN")) return results.optimizedDistanceNN;
-    if (results.bestMethod?.includes("CWS"))
-      return results.optimizedDistanceCWS;
-    // Fallback if method is unclear or missing, maybe average or prefer one?
-    // Or return NaN if we can't be sure.
-    return results.optimizedDistanceCWS ?? results.optimizedDistanceNN ?? NaN; // Prefer CWS if available, else NN, else NaN
+    if (results.bestMethod?.includes("NN")) {
+      return results.optimizedDistanceNN;
+    }
+    if (results.bestMethod?.includes("CWS")) {
+      // Provide fallback if it's undefined
+      return results.optimizedDistanceCWS ?? NaN;
+    }
+    // Default fallback if none of the above conditions match
+    return results.optimizedDistanceCWS ?? results.optimizedDistanceNN ?? NaN;
   };
-
-  // --- RENDER ---
+  
 
   return (
     <main className="flex min-h-screen flex-col items-center p-4 pt-8 md:p-10 bg-gradient-to-br from-gray-50 via-blue-50 to-gray-100 dark:from-gray-900 dark:via-slate-950 dark:to-black text-gray-900 dark:text-gray-100 font-sans">
@@ -399,7 +378,6 @@ export default function Home() {
             Optimize delivery routes for multiple drivers based on location
             data.
           </p>
-          {/* Connection Status Indicator */}
           <div className="mt-2 text-sm">
             {connectionStatus === "Connected" ? (
               <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
@@ -422,7 +400,6 @@ export default function Home() {
         {/* Input Form Section */}
         <section className="w-full max-w-xl mx-auto bg-white dark:bg-slate-800/80 backdrop-blur-sm p-6 md:p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Basic Inputs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
               <div>
                 <label htmlFor="numDeliveries" className="input-label">
@@ -457,7 +434,6 @@ export default function Home() {
                 />
               </div>
             </div>
-            {/* Advanced Settings */}
             <div>
               <button
                 type="button"
@@ -483,8 +459,8 @@ export default function Home() {
                         setMinCoord,
                         -Infinity,
                         false
-                      )} // Allow decimals
-                      step="any" // Allow any decimal value
+                      )}
+                      step="any"
                       required
                       disabled={isLoading}
                       className="input-field"
@@ -503,8 +479,8 @@ export default function Home() {
                         setMaxCoord,
                         -Infinity,
                         false
-                      )} // Allow decimals
-                      step="any" // Allow any decimal value
+                      )}
+                      step="any"
                       required
                       disabled={isLoading}
                       className="input-field"
@@ -513,7 +489,6 @@ export default function Home() {
                 </div>
               )}
             </div>
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -571,16 +546,14 @@ export default function Home() {
             <div className="h-96 overflow-y-auto bg-gray-950 dark:bg-black border border-gray-700 dark:border-gray-600 rounded-lg shadow-inner p-4 font-mono text-sm">
               {logMessages.map((log, index) => (
                 <div
-                  key={index} // Using index is okay for logs that only append
+                  key={index}
                   className={`flex items-start ${styleForLog(log.style)}`}
                 >
-                  {/* Render prefix only if it's not null */}
                   {prefixForLog(log.style) && (
                     <span className="flex-shrink-0 w-5 text-center pt-0.5">
                       {prefixForLog(log.style)}
                     </span>
                   )}
-                  {/* Ensure message exists before rendering */}
                   <span
                     className={`flex-grow break-words whitespace-pre-wrap ${
                       !prefixForLog(log.style) ? "ml-5" : ""
@@ -588,16 +561,14 @@ export default function Home() {
                   >
                     {log.message ?? ""}
                   </span>
+                  {/* {log.data?.Time && (
+  <span className="text-gray-500 ml-2 whitespace-nowrap pl-2">
+    ({String(log.data.Time)})
+  </span>
+)} */}
 
-                  {/* Display additional data like time if available */}
-                  {log.data?.Time && (
-                    <span className="text-gray-500 ml-2 whitespace-nowrap pl-2">
-                      ({log.data.Time})
-                    </span>
-                  )}
                 </div>
               ))}
-              {/* Loading indicator at the end of logs */}
               {isLoading && (
                 <div className="flex items-center mt-2 pl-5">
                   <Loader2 className="animate-spin h-4 w-4 mr-2 text-blue-400" />
@@ -606,7 +577,6 @@ export default function Home() {
                   </span>
                 </div>
               )}
-              {/* Element to scroll to */}
               <div ref={logEndRef} />
             </div>
           </section>
@@ -618,17 +588,15 @@ export default function Home() {
             <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-center text-gray-800 dark:text-gray-200">
               Optimization Results Summary
             </h2>
-            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8 text-left">
               <StatCard
                 icon={CheckCircle}
                 title="Best Method Found"
-                value={results.bestMethod || "N/A"} // Fallback for value
+                value={results.bestMethod || "N/A"}
               />
               <StatCard
                 icon={Clock}
                 title="Longest Driver Time (Makespan)"
-                // Provide fallback 0 if minMakespan is missing/undefined
                 value={`${(results.minMakespan ?? 0).toFixed(
                   1
                 )} s (${formatTime(results.minMakespan ?? 0)})`}
@@ -636,14 +604,11 @@ export default function Home() {
               <StatCard
                 icon={Map}
                 title="Total Distance Covered"
-                // Calculate total distance safely
                 value={`${getTotalDistance().toFixed(1)} m (${formatDistance(
                   getTotalDistance()
                 )})`}
               />
             </div>
-
-            {/* Route Chart */}
             <div className="mb-10">
               <h3 className="text-xl md:text-2xl font-semibold mb-5 text-center text-gray-800 dark:text-gray-200">
                 Route Visualization
@@ -653,7 +618,6 @@ export default function Home() {
                 driverRoutes={results.driverRoutes || []}
               />
             </div>
-            {/* Driver Details */}
             <div>
               <h3 className="text-xl md:text-2xl font-semibold mb-5 text-center text-gray-800 dark:text-gray-200">
                 Driver Route Details
@@ -661,7 +625,7 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {(results.driverRoutes ?? []).length > 0 ? (
                   results.driverRoutes
-                    .sort((a, b) => (a.driverId ?? 0) - (b.driverId ?? 0)) // Safe sorting
+                    .sort((a, b) => (a.driverId ?? 0) - (b.driverId ?? 0))
                     .map((route) => (
                       <DriverRouteCard
                         key={route.driverId}
@@ -681,7 +645,6 @@ export default function Home() {
         )}
       </div>
 
-      {/* Global Styles (Scoped using jsx) */}
       <style jsx global>{`
         .input-label {
           @apply block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-300;
@@ -691,7 +654,7 @@ export default function Home() {
         }
         .input-field {
           @apply w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700/80 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed;
-          -webkit-appearance: textfield; /* Remove spinners for number inputs */
+          -webkit-appearance: textfield;
           -moz-appearance: textfield;
           appearance: textfield;
         }
@@ -700,7 +663,6 @@ export default function Home() {
           -webkit-appearance: none;
           margin: 0;
         }
-        /* Animation Keyframes */
         .animate-fade-in {
           animation: fadeIn 0.6s ease-out forwards;
         }
@@ -710,7 +672,7 @@ export default function Home() {
         @keyframes fadeIn {
           from {
             opacity: 0;
-            transform: translateY(8px); /* Subtle upward movement */
+            transform: translateY(8px);
           }
           to {
             opacity: 1;
@@ -722,7 +684,6 @@ export default function Home() {
   );
 }
 
-// --- StatCard Component ---
 interface StatCardProps {
   title: string;
   value: string | number;
@@ -747,7 +708,6 @@ function StatCard({ title, value, icon: Icon }: StatCardProps) {
   );
 }
 
-// --- DriverRouteCard Component ---
 interface DriverRouteCardProps {
   route: DriverRoute;
   formatTime: (seconds: number) => string;
@@ -759,8 +719,8 @@ function DriverRouteCard({
   formatTime,
   formatDistance,
 }: DriverRouteCardProps) {
-  const routeTime = route.distance ?? 0; // Use distance as time (1m/s), fallback to 0
-  const routeDist = route.distance ?? 0; // Use distance, fallback to 0
+  const routeTime = route.distance ?? 0;
+  const routeDist = route.distance ?? 0;
 
   return (
     <div className="bg-white dark:bg-slate-800 p-5 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300 ease-in-out flex flex-col">
@@ -786,12 +746,10 @@ function DriverRouteCard({
             Route Sequence (Point IDs):
           </p>
           <p className="font-mono break-words bg-gray-100 dark:bg-gray-700/60 p-3 rounded text-xs text-gray-700 dark:text-gray-300 border border-gray-100 dark:border-gray-600">
-            {/* Add Depot (0) at start and end */}0 →{" "}
-            {route.deliveryIds?.join(" → ") ?? "N/A"} → 0
+            0 → {route.deliveryIds?.join(" → ") ?? "N/A"} → 0
           </p>
         </div>
       </div>
     </div>
   );
 }
-// ========= END OF FILE =========

@@ -149,7 +149,7 @@ export default function RouteChart({
         title: {
           display: true,
           text: "X Coordinate (meters)",
-          font: { size: 14, weight: '500' },
+          font: { size: 14, weight: 'normal' },
           color: "#9ca3af", // Use Tailwind gray-400 for dark mode compatibility
         },
         grid: { color: "rgba(200, 200, 200, 0.1)" }, // Lighter grid lines
@@ -160,7 +160,7 @@ export default function RouteChart({
         title: {
           display: true,
           text: "Y Coordinate (meters)",
-          font: { size: 14, weight: '500' },
+          font: { size: 14, weight: 'normal' },
           color: "#9ca3af",
         },
         grid: { color: "rgba(200, 200, 200, 0.1)" },
