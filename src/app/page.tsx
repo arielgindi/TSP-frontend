@@ -1,6 +1,7 @@
 "use client";
 
 import RouteChart from "@/components/RouteChart";
+import { API_URL, SIGNALR_URL } from "@/config/appConfig";
 import {
   DriverRoute,
   OptimizationRequestData,
@@ -43,14 +44,13 @@ export default function Home() {
   const logEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const url = process.env.NEXT_PUBLIC_SIGNALR_URL;
-    if (!url) {
+    if (!SIGNALR_URL) {
       setError("SignalR URL missing. Real-time logs disabled.");
       setConnectionStatus("Not connected");
       return;
     }
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(url)
+      .withUrl(SIGNALR_URL)
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Warning)
       .build();
@@ -81,7 +81,7 @@ export default function Home() {
       .catch((err) => {
         console.error("SignalR Connection Error: ", err);
         setError(
-          `Failed to connect to SignalR hub at ${url}. Real-time logs will be unavailable.`
+          `Failed to connect to SignalR hub at ${SIGNALR_URL}. Real-time logs will be unavailable.`
         );
         setConnectionStatus("Connection Failed");
       });
@@ -172,17 +172,16 @@ export default function Home() {
       maxCoordinate: maxCoord,
     };
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!apiUrl) {
+    if (!API_URL) {
       setError(
-        "API URL environment variable (NEXT_PUBLIC_API_URL) is not configured."
+        "API URL environment variable (API_URL) is not configured."
       );
       setIsLoading(false);
       return;
     }
 
     try {
-      const response = await fetch(apiUrl, {
+      const response = await fetch(API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -214,7 +213,7 @@ export default function Home() {
           err.message.includes("Failed to fetch") ||
           err.message.includes("NetworkError")
         ) {
-          msg = `Network Error: Unable to connect to the API at ${apiUrl}. Please check if the backend server is running and accessible.`;
+          msg = `Network Error: Unable to connect to the API at ${API_URL}. Please check if the backend server is running and accessible.`;
         } else if (
           err.message.startsWith("Server Error") ||
           err.message.startsWith("API Error:")
