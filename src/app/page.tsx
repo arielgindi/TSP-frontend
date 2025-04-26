@@ -173,9 +173,7 @@ export default function Home() {
     };
 
     if (!API_URL) {
-      setError(
-        "API URL environment variable (API_URL) is not configured."
-      );
+      setError("API URL environment variable (API_URL) is not configured.");
       setIsLoading(false);
       return;
     }
@@ -357,13 +355,10 @@ export default function Home() {
       return results.optimizedDistanceNN;
     }
     if (results.bestMethod?.includes("CWS")) {
-      // Provide fallback if it's undefined
       return results.optimizedDistanceCWS ?? NaN;
     }
-    // Default fallback if none of the above conditions match
     return results.optimizedDistanceCWS ?? results.optimizedDistanceNN ?? NaN;
   };
-  
 
   return (
     <main className="flex min-h-screen flex-col items-center p-4 pt-8 md:p-10 bg-gradient-to-br from-gray-50 via-blue-50 to-gray-100 dark:from-gray-900 dark:via-slate-950 dark:to-black text-gray-900 dark:text-gray-100 font-sans">
@@ -542,7 +537,8 @@ export default function Home() {
             <h3 className="text-xl md:text-2xl font-semibold mb-3 text-center text-gray-800 dark:text-gray-200 flex items-center justify-center">
               <Terminal className="w-6 h-6 mr-2" /> Optimization Log
             </h3>
-            <div className="h-96 overflow-y-auto bg-gray-950 dark:bg-black border border-gray-700 dark:border-gray-600 rounded-lg shadow-inner p-4 font-mono text-sm">
+            {/* Log container that grows to show all messages without a fixed height */}
+            <div className="min-h-[12rem] bg-gray-950 dark:bg-black border border-gray-700 dark:border-gray-600 rounded-lg shadow-inner p-4 font-mono text-sm">
               {logMessages.map((log, index) => (
                 <div
                   key={index}
@@ -560,12 +556,6 @@ export default function Home() {
                   >
                     {log.message ?? ""}
                   </span>
-                  {/* {log.data?.Time && (
-  <span className="text-gray-500 ml-2 whitespace-nowrap pl-2">
-    ({String(log.data.Time)})
-  </span>
-)} */}
-
                 </div>
               ))}
               {isLoading && (
@@ -718,6 +708,7 @@ function DriverRouteCard({
   formatTime,
   formatDistance,
 }: DriverRouteCardProps) {
+  // Just showing route stats in a simple way
   const routeTime = route.distance ?? 0;
   const routeDist = route.distance ?? 0;
 
