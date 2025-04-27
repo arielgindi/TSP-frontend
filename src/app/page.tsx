@@ -27,6 +27,11 @@ import {
 } from "lucide-react";
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 
+// NOTE: switched SignalR to withCredentials:false so the browser
+// no longer blocks the CORS pre‑flight when the API uses AllowAnyOrigin.
+// If you decide to allow cookies on the API later, just flip this back
+// and configure the server policy to allow credentials for your exact origin.
+
 export default function Home() {
   const [numDeliveries, setNumDeliveries] = useState<number>(30);
   const [numDrivers, setNumDrivers] = useState<number>(4);
@@ -49,11 +54,14 @@ export default function Home() {
       setConnectionStatus("Not connected");
       return;
     }
+
+    // build the hub, but disable credentials so wildcard CORS works
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(SIGNALR_URL)
+      .withUrl(SIGNALR_URL, { withCredentials: false })
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Warning)
       .build();
+
     setHubConnection(connection);
 
     connection.on("ReceiveMessage", (update: ProgressUpdate) => {
@@ -104,8 +112,8 @@ export default function Home() {
     });
 
     return () => {
-      hubConnection
-        ?.stop()
+      connection
+        .stop()
         .catch((err) =>
           console.error("Error stopping SignalR connection:", err)
         );
