@@ -41,6 +41,7 @@ export default function Home() {
     useState<signalR.HubConnection | null>(null);
   const [connectionStatus, setConnectionStatus] =
     useState<string>("Not connected");
+  const [connectionId, setConnectionId] = useState<string>(""); // <-- new
   const logEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -52,21 +53,24 @@ export default function Home() {
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(SIGNALR_URL)
       .withAutomaticReconnect()
-      .configureLogging(signalR.LogLevel.Warning)
       .build();
     setHubConnection(connection);
 
+    // get our own connection ID from the hub
+    connection.on("ReceiveConnectionId", (id: string) => {
+      setConnectionId(id);
+    });
+
+    // listen for progress updates
     connection.on("ReceiveMessage", (update: ProgressUpdate) => {
       setLogMessages((prev) => {
         const item = { ...update, timestamp: Date.now() };
         if (item.clearPreviousProgress && item.style === "progress") {
-          const lastProgressIndex = prev
-            .map((log) => log.style)
-            .lastIndexOf("progress");
-          if (lastProgressIndex !== -1) {
-            const updatedLogs = [...prev];
-            updatedLogs[lastProgressIndex] = item;
-            return updatedLogs;
+          const lastIndex = prev.map((l) => l.style).lastIndexOf("progress");
+          if (lastIndex !== -1) {
+            const copy = [...prev];
+            copy[lastIndex] = item;
+            return copy;
           }
         }
         return [...prev, item];
@@ -75,8 +79,10 @@ export default function Home() {
 
     connection
       .start()
-      .then(() => {
+      .then(async () => {
         setConnectionStatus("Connected");
+        // ask server to send back our own connectionId
+        await connection.invoke("SendConnectionId");
       })
       .catch((err) => {
         console.error("SignalR Connection Error: ", err);
@@ -91,8 +97,9 @@ export default function Home() {
       setConnectionStatus("Reconnecting");
     });
 
-    connection.onreconnected((connectionId) => {
-      console.log("SignalR reconnected with ID: ", connectionId);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connection.onreconnected((_newId) => {
+      console.log("SignalR reconnected");
       setConnectionStatus("Connected");
     });
 
@@ -170,6 +177,7 @@ export default function Home() {
       numberOfDrivers: numDrivers,
       minCoordinate: minCoord,
       maxCoordinate: maxCoord,
+      connectionId: connectionId, // <-- include it
     };
 
     if (!API_URL) {
@@ -238,6 +246,7 @@ export default function Home() {
       setIsLoading(false);
     }
   };
+
 
   const styleForLog = (s: string | undefined): string => {
     const base = "block py-0.5 px-1 text-sm leading-relaxed";

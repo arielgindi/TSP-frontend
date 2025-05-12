@@ -31,13 +31,15 @@ export interface OptimizationResult {
     initialDistanceCWS?: number;
     optimizedDistanceCWS?: number;
 }
-
+// in types/optimization.ts
 export interface OptimizationRequestData {
-    numberOfDeliveries: number;
-    numberOfDrivers: number;
-    minCoordinate?: number;
-    maxCoordinate?: number;
+  numberOfDeliveries: number;
+  numberOfDrivers: number;
+  minCoordinate?: number;
+  maxCoordinate?: number;
+  connectionId?: string;   // add this
 }
+
 
 export interface ProgressUpdate {
     step?: string;
